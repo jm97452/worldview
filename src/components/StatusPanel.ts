@@ -76,13 +76,13 @@ export class StatusPanel {
     const feedNames = [
       'Politics', 'Middleeast', 'Tech', 'Ai', 'Finance',
       'Gov', 'Intel', 'Layoffs', 'Congress', 'Thinktanks',
-      'Polymarket', 'Weather'
+      'Polymarket', 'Weather', 'NetBlocks', 'AIS'
     ];
     feedNames.forEach(name => {
       this.feeds.set(name, { name, lastUpdate: null, status: 'warning', itemCount: 0 });
     });
 
-    const apiNames = ['RSS2JSON', 'Alpha Vantage', 'CoinGecko', 'Polymarket', 'USGS', 'FRED'];
+    const apiNames = ['RSS2JSON', 'Alpha Vantage', 'CoinGecko', 'Polymarket', 'USGS', 'FRED', 'AIS'];
     apiNames.forEach(name => {
       this.apis.set(name, { name, status: 'warning' });
     });

@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import type { Topology, GeometryCollection } from 'topojson-specification';
-import type { MapLayers, Hotspot, NewsItem, Earthquake, InternetOutage } from '@/types';
+import type { MapLayers, Hotspot, NewsItem, Earthquake, InternetOutage, AisDisruptionEvent, AisDensityZone } from '@/types';
 import type { WeatherAlert } from '@/services/weather';
 import { getSeverityColor } from '@/services/weather';
 import {
@@ -62,6 +62,8 @@ export class MapComponent {
   private earthquakes: Earthquake[] = [];
   private weatherAlerts: WeatherAlert[] = [];
   private outages: InternetOutage[] = [];
+  private aisDisruptions: AisDisruptionEvent[] = [];
+  private aisDensity: AisDensityZone[] = [];
   private news: NewsItem[] = [];
   private popup: MapPopup;
   private onHotspotClick?: (hotspot: Hotspot) => void;
@@ -193,13 +195,16 @@ export class MapComponent {
     toggles.className = 'layer-toggles';
     toggles.id = 'layerToggles';
 
-    const layers: (keyof MapLayers)[] = ['conflicts', 'bases', 'cables', 'pipelines', 'hotspots', 'earthquakes', 'weather', 'nuclear', 'irradiators', 'outages', 'datacenters', 'sanctions', 'economic', 'countries', 'waterways'];
+    const layers: (keyof MapLayers)[] = ['conflicts', 'bases', 'cables', 'pipelines', 'hotspots', 'ais', 'earthquakes', 'weather', 'nuclear', 'irradiators', 'outages', 'datacenters', 'sanctions', 'economic', 'countries', 'waterways'];
+    const layerLabels: Partial<Record<keyof MapLayers, string>> = {
+      ais: 'AIS',
+    };
 
     layers.forEach((layer) => {
       const btn = document.createElement('button');
       btn.className = `layer-toggle ${this.state.layers[layer] ? 'active' : ''}`;
       btn.dataset.layer = layer;
-      btn.textContent = layer;
+      btn.textContent = layerLabels[layer] || layer;
       btn.addEventListener('click', () => this.toggleLayer(layer));
       toggles.appendChild(btn);
     });
@@ -425,6 +430,10 @@ export class MapComponent {
 
     if (this.state.layers.conflicts && showGlobalLayers) {
       this.renderConflicts(projection);
+    }
+
+    if (this.state.layers.ais && showGlobalLayers) {
+      this.renderAisDensity(projection);
     }
 
     if (this.state.layers.sanctions && showGlobalLayers) {
@@ -689,6 +698,10 @@ export class MapComponent {
       // Strategic waterways
       if (this.state.layers.waterways) {
         this.renderWaterways(projection);
+      }
+
+      if (this.state.layers.ais) {
+        this.renderAisDisruptions(projection);
       }
 
       // APT groups
@@ -1097,6 +1110,68 @@ export class MapComponent {
       });
 
       this.overlays.appendChild(div);
+    });
+  }
+
+  private renderAisDisruptions(projection: d3.GeoProjection): void {
+    this.aisDisruptions.forEach((event) => {
+      const pos = projection([event.lon, event.lat]);
+      if (!pos) return;
+
+      const div = document.createElement('div');
+      div.className = `ais-disruption-marker ${event.severity} ${event.type}`;
+      div.style.left = `${pos[0]}px`;
+      div.style.top = `${pos[1]}px`;
+
+      const icon = document.createElement('div');
+      icon.className = 'ais-disruption-icon';
+      icon.textContent = event.type === 'gap_spike' ? '🛰️' : '🚢';
+      div.appendChild(icon);
+
+      const label = document.createElement('div');
+      label.className = 'ais-disruption-label';
+      label.textContent = event.name;
+      div.appendChild(label);
+
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = this.container.getBoundingClientRect();
+        this.popup.show({
+          type: 'ais',
+          data: event,
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      });
+
+      this.overlays.appendChild(div);
+    });
+  }
+
+  private renderAisDensity(projection: d3.GeoProjection): void {
+    const densityGroup = this.svg.append('g').attr('class', 'ais-density');
+
+    this.aisDensity.forEach((zone) => {
+      const pos = projection([zone.lon, zone.lat]);
+      if (!pos) return;
+
+      const intensity = Math.min(Math.max(zone.intensity, 0.15), 1);
+      const radius = 18 + intensity * 45;
+      const isCongested = zone.deltaPct >= 15;
+      const color = isCongested ? '#ffb703' : '#00d1ff';
+      const fillOpacity = 0.08 + intensity * 0.22;
+
+      densityGroup
+        .append('circle')
+        .attr('class', 'ais-density-spot')
+        .attr('cx', pos[0])
+        .attr('cy', pos[1])
+        .attr('r', radius)
+        .attr('fill', color)
+        .attr('fill-opacity', fillOpacity)
+        .attr('stroke', color)
+        .attr('stroke-opacity', 0.35)
+        .attr('stroke-width', 1);
     });
   }
 
@@ -1529,6 +1604,12 @@ export class MapComponent {
 
   public setOutages(outages: InternetOutage[]): void {
     this.outages = outages;
+    this.render();
+  }
+
+  public setAisData(disruptions: AisDisruptionEvent[], density: AisDensityZone[]): void {
+    this.aisDisruptions = disruptions;
+    this.aisDensity = density;
     this.render();
   }
 

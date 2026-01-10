@@ -1,11 +1,11 @@
-import type { ConflictZone, Hotspot, Earthquake, NewsItem, MilitaryBase, StrategicWaterway, APTGroup, NuclearFacility, EconomicCenter, GammaIrradiator, Pipeline, UnderseaCable, InternetOutage, AIDataCenter } from '@/types';
+import type { ConflictZone, Hotspot, Earthquake, NewsItem, MilitaryBase, StrategicWaterway, APTGroup, NuclearFacility, EconomicCenter, GammaIrradiator, Pipeline, UnderseaCable, InternetOutage, AIDataCenter, AisDisruptionEvent } from '@/types';
 import type { WeatherAlert } from '@/services/weather';
 
-export type PopupType = 'conflict' | 'hotspot' | 'earthquake' | 'weather' | 'base' | 'waterway' | 'apt' | 'nuclear' | 'economic' | 'irradiator' | 'pipeline' | 'cable' | 'outage' | 'datacenter';
+export type PopupType = 'conflict' | 'hotspot' | 'earthquake' | 'weather' | 'base' | 'waterway' | 'apt' | 'nuclear' | 'economic' | 'irradiator' | 'pipeline' | 'cable' | 'outage' | 'datacenter' | 'ais';
 
 interface PopupData {
   type: PopupType;
-  data: ConflictZone | Hotspot | Earthquake | WeatherAlert | MilitaryBase | StrategicWaterway | APTGroup | NuclearFacility | EconomicCenter | GammaIrradiator | Pipeline | UnderseaCable | InternetOutage | AIDataCenter;
+  data: ConflictZone | Hotspot | Earthquake | WeatherAlert | MilitaryBase | StrategicWaterway | APTGroup | NuclearFacility | EconomicCenter | GammaIrradiator | Pipeline | UnderseaCable | InternetOutage | AIDataCenter | AisDisruptionEvent;
   relatedNews?: NewsItem[];
   x: number;
   y: number;
@@ -95,6 +95,8 @@ export class MapPopup {
         return this.renderOutagePopup(data.data as InternetOutage);
       case 'datacenter':
         return this.renderDatacenterPopup(data.data as AIDataCenter);
+      case 'ais':
+        return this.renderAisPopup(data.data as AisDisruptionEvent);
       default:
         return '';
     }
@@ -327,6 +329,47 @@ export class MapPopup {
             <span class="stat-value">${waterway.lat.toFixed(2)}°, ${waterway.lon.toFixed(2)}°</span>
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  private renderAisPopup(event: AisDisruptionEvent): string {
+    const severityClass = event.severity;
+    const severityLabel = event.severity.toUpperCase();
+    const typeLabel = event.type === 'gap_spike' ? 'AIS GAP SPIKE' : 'CHOKEPOINT CONGESTION';
+    const changeLabel = event.type === 'gap_spike' ? 'DARKENING' : 'DENSITY';
+    const countLabel = event.type === 'gap_spike' ? 'DARK SHIPS' : 'VESSEL COUNT';
+    const countValue = event.type === 'gap_spike'
+      ? event.darkShips?.toString() || '—'
+      : event.vesselCount?.toString() || '—';
+
+    return `
+      <div class="popup-header ais">
+        <span class="popup-title">${event.name.toUpperCase()}</span>
+        <span class="popup-badge ${severityClass}">${severityLabel}</span>
+        <button class="popup-close">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="popup-subtitle">${typeLabel}</div>
+        <div class="popup-stats">
+          <div class="popup-stat">
+            <span class="stat-label">${changeLabel}</span>
+            <span class="stat-value">${event.changePct}% ↑</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">${countLabel}</span>
+            <span class="stat-value">${countValue}</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">WINDOW</span>
+            <span class="stat-value">${event.windowHours}H</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">REGION</span>
+            <span class="stat-value">${event.region || `${event.lat.toFixed(2)}°, ${event.lon.toFixed(2)}°`}</span>
+          </div>
+        </div>
+        <p class="popup-description">${event.description}</p>
       </div>
     `;
   }

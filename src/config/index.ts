@@ -13,6 +13,7 @@ export const API_URLS = {
     '/api/coingecko/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true',
   polymarket: '/api/polymarket/events?closed=false&limit=20',
   earthquakes: '/api/earthquake/earthquakes/feed/v1.0/summary/4.5_day.geojson',
+  aisSignals: '/api/ais/signals',
 };
 
 export const REFRESH_INTERVALS = {
@@ -20,4 +21,5 @@ export const REFRESH_INTERVALS = {
   markets: 60 * 1000,       // 1 minute
   crypto: 60 * 1000,        // 1 minute
   predictions: 5 * 60 * 1000, // 5 minutes
+  ais: 10 * 60 * 1000, // 10 minutes
 };

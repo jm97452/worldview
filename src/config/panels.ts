@@ -26,6 +26,7 @@ export const DEFAULT_MAP_LAYERS: MapLayers = {
   cables: true,
   pipelines: false,
   hotspots: true,
+  ais: false,
   nuclear: true,
   irradiators: false,
   sanctions: true,

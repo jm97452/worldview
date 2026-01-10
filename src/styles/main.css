@@ -1960,6 +1960,10 @@ body.playback-mode .status-dot {
   background: rgba(255, 165, 0, 0.1);
 }
 
+.popup-header.ais {
+  background: rgba(0, 209, 255, 0.12);
+}
+
 .popup-title {
   font-size: 16px;
   font-weight: bold;
@@ -1974,6 +1978,10 @@ body.playback-mode .status-dot {
 
 .popup-header.earthquake .popup-title {
   color: #ff8c00;
+}
+
+.popup-header.ais .popup-title {
+  color: #00d1ff;
 }
 
 .popup-title.magnitude {
@@ -2199,6 +2207,50 @@ body.playback-mode .status-dot {
   background: #44ffcc;
   box-shadow: 0 0 10px rgba(68, 255, 204, 0.8);
   transform: rotate(45deg) scale(1.2);
+}
+
+/* AIS disruptions */
+.ais-disruption-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%) scale(var(--marker-scale, 1));
+  cursor: pointer;
+  z-index: 40;
+  gap: 2px;
+}
+
+.ais-disruption-marker.high {
+  --ais-color: #ffb703;
+}
+
+.ais-disruption-marker.elevated {
+  --ais-color: #ffd166;
+}
+
+.ais-disruption-marker.low {
+  --ais-color: #00d1ff;
+}
+
+.ais-disruption-icon {
+  font-size: 16px;
+  filter: drop-shadow(0 0 6px var(--ais-color, #00d1ff));
+}
+
+.ais-disruption-label {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ais-color, #00d1ff);
+  text-shadow: 0 0 4px var(--bg), 0 0 8px var(--bg);
+  white-space: nowrap;
+}
+
+.ais-density-spot {
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(0.2px);
 }
 
 /* APT markers */

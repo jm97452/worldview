@@ -10,7 +10,7 @@ import {
   DEFAULT_MAP_LAYERS,
   STORAGE_KEYS,
 } from '@/config';
-import { fetchCategoryFeeds, fetchMultipleStocks, fetchCrypto, fetchPredictions, fetchEarthquakes, fetchWeatherAlerts, fetchFredData, fetchInternetOutages, initDB, updateBaseline, calculateDeviation, analyzeCorrelations, clusterNews, addToSignalHistory, saveSnapshot, cleanOldSnapshots } from '@/services';
+import { fetchCategoryFeeds, fetchMultipleStocks, fetchCrypto, fetchPredictions, fetchEarthquakes, fetchWeatherAlerts, fetchFredData, fetchInternetOutages, fetchAisSignals, initDB, updateBaseline, calculateDeviation, analyzeCorrelations, clusterNews, addToSignalHistory, saveSnapshot, cleanOldSnapshots } from '@/services';
 import { loadFromStorage, saveToStorage, ExportPanel } from '@/utils';
 import {
   MapComponent,
@@ -65,7 +65,8 @@ export class App {
       STORAGE_KEYS.panels,
       DEFAULT_PANELS
     );
-    this.mapLayers = loadFromStorage<MapLayers>(STORAGE_KEYS.mapLayers, DEFAULT_MAP_LAYERS);
+    const storedLayers = loadFromStorage<MapLayers>(STORAGE_KEYS.mapLayers, DEFAULT_MAP_LAYERS);
+    this.mapLayers = { ...DEFAULT_MAP_LAYERS, ...storedLayers };
   }
 
   public async init(): Promise<void> {
@@ -793,6 +794,7 @@ export class App {
       this.loadWeatherAlerts(),
       this.loadFredData(),
       this.loadOutages(),
+      this.loadAisSignals(),
     ]);
 
     // Update search index after all data loads
@@ -949,6 +951,18 @@ export class App {
     }
   }
 
+  private async loadAisSignals(): Promise<void> {
+    try {
+      const { disruptions, density } = await fetchAisSignals();
+      this.map?.setAisData(disruptions, density);
+      this.statusPanel?.updateFeed('AIS', { status: 'ok', itemCount: disruptions.length + density.length });
+      this.statusPanel?.updateApi('AIS', { status: 'ok' });
+    } catch (error) {
+      this.statusPanel?.updateFeed('AIS', { status: 'error', errorMessage: String(error) });
+      this.statusPanel?.updateApi('AIS', { status: 'error' });
+    }
+  }
+
   private async loadFredData(): Promise<void> {
     try {
       this.economicPanel?.setLoading(true);
@@ -991,5 +1005,6 @@ export class App {
     setInterval(() => this.loadWeatherAlerts(), 10 * 60 * 1000);
     setInterval(() => this.loadFredData(), 30 * 60 * 1000);
     setInterval(() => this.loadOutages(), 60 * 60 * 1000); // 1 hour - Cloudflare rate limit
+    setInterval(() => this.loadAisSignals(), REFRESH_INTERVALS.ais);
   }
 }
