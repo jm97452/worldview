@@ -42,10 +42,11 @@ import {
 } from '@/components';
 import type { MapView } from '@/components';
 import type { SearchResult } from '@/components/SearchModal';
-import { INTEL_HOTSPOTS, CONFLICT_ZONES, MILITARY_BASES, UNDERSEA_CABLES, NUCLEAR_FACILITIES } from '@/config/geo';
-import { PIPELINES } from '@/config/pipelines';
+import { UNDERSEA_CABLES } from '@/config/geo';
 import { AI_DATA_CENTERS } from '@/config/ai-datacenters';
-import { GAMMA_IRRADIATORS } from '@/config/irradiators';
+import { TECH_COMPANIES } from '@/config/tech-companies';
+import { AI_RESEARCH_LABS } from '@/config/ai-research-labs';
+import { STARTUP_ECOSYSTEMS } from '@/config/startup-ecosystems';
 import type { PredictionMarket, MarketData, ClusteredEvent } from '@/types';
 
 export class App {
@@ -286,38 +287,31 @@ export class App {
   private setupSearchModal(): void {
     this.searchModal = new SearchModal(this.container);
 
-    // Register static sources (hotspots, conflicts, bases)
-    // Include keywords in subtitle for better searchability
-    this.searchModal.registerSource('hotspot', INTEL_HOTSPOTS.map(h => ({
-      id: h.id,
-      title: h.name,
-      subtitle: `${h.subtext || ''} ${h.keywords?.join(' ') || ''} ${h.description || ''}`.trim(),
-      data: h,
+    // Register tech companies
+    this.searchModal.registerSource('tech-company', TECH_COMPANIES.map(t => ({
+      id: t.id,
+      title: t.name,
+      subtitle: `${t.sector} | ${t.city}, ${t.country}`.trim(),
+      data: t,
     })));
 
-    this.searchModal.registerSource('conflict', CONFLICT_ZONES.map(c => ({
-      id: c.id,
-      title: c.name,
-      subtitle: `${c.parties?.join(' ') || ''} ${c.keywords?.join(' ') || ''} ${c.description || ''}`.trim(),
-      data: c,
+    // Register AI research labs
+    this.searchModal.registerSource('ai-lab', AI_RESEARCH_LABS.map(a => ({
+      id: a.id,
+      title: a.name,
+      subtitle: `${a.type} | ${a.focusAreas?.join(', ') || ''}`.trim(),
+      data: a,
     })));
 
-    this.searchModal.registerSource('base', MILITARY_BASES.map(b => ({
-      id: b.id,
-      title: b.name,
-      subtitle: `${b.type} ${b.description || ''}`.trim(),
-      data: b,
+    // Register startup ecosystems
+    this.searchModal.registerSource('startup-ecosystem', STARTUP_ECOSYSTEMS.map(s => ({
+      id: s.id,
+      title: s.name,
+      subtitle: `${s.ecosystemTier} | ${s.unicorns} unicorns | ${s.topSectors?.join(', ') || ''}`.trim(),
+      data: s,
     })));
 
-    // Register pipelines
-    this.searchModal.registerSource('pipeline', PIPELINES.map(p => ({
-      id: p.id,
-      title: p.name,
-      subtitle: `${p.type} ${p.operator || ''} ${p.countries?.join(' ') || ''}`.trim(),
-      data: p,
-    })));
-
-    // Register undersea cables
+    // Register undersea cables (relevant for tech infrastructure)
     this.searchModal.registerSource('cable', UNDERSEA_CABLES.map(c => ({
       id: c.id,
       title: c.name,
@@ -331,22 +325,6 @@ export class App {
       title: d.name,
       subtitle: `${d.owner} ${d.chipType || ''}`.trim(),
       data: d,
-    })));
-
-    // Register nuclear facilities
-    this.searchModal.registerSource('nuclear', NUCLEAR_FACILITIES.map(n => ({
-      id: n.id,
-      title: n.name,
-      subtitle: `${n.type} ${n.operator || ''}`.trim(),
-      data: n,
-    })));
-
-    // Register gamma irradiators
-    this.searchModal.registerSource('irradiator', GAMMA_IRRADIATORS.map(g => ({
-      id: g.id,
-      title: `${g.city}, ${g.country}`,
-      subtitle: g.organization || '',
-      data: g,
     })));
 
     // Handle result selection
@@ -373,24 +351,37 @@ export class App {
       case 'news': {
         // Find and scroll to the news panel containing this item
         const item = result.data as NewsItem;
-        this.scrollToPanel('politics');
+        this.scrollToPanel('ai');
         this.highlightNewsItem(item.link);
         break;
       }
-      case 'hotspot': {
-        // Trigger map popup for hotspot
-        const hotspot = result.data as typeof INTEL_HOTSPOTS[0];
+      case 'tech-company': {
+        const company = result.data as typeof TECH_COMPANIES[0];
         this.map?.setView('global');
+        this.map?.enableLayer('techCompanies');
+        this.mapLayers.techCompanies = true;
         setTimeout(() => {
-          this.map?.triggerHotspotClick(hotspot.id);
+          this.map?.triggerTechCompanyClick(company.id);
         }, 300);
         break;
       }
-      case 'conflict': {
-        const conflict = result.data as typeof CONFLICT_ZONES[0];
+      case 'ai-lab': {
+        const lab = result.data as typeof AI_RESEARCH_LABS[0];
         this.map?.setView('global');
+        this.map?.enableLayer('aiLabs');
+        this.mapLayers.aiLabs = true;
         setTimeout(() => {
-          this.map?.triggerConflictClick(conflict.id);
+          this.map?.triggerAILabClick(lab.id);
+        }, 300);
+        break;
+      }
+      case 'startup-ecosystem': {
+        const ecosystem = result.data as typeof STARTUP_ECOSYSTEMS[0];
+        this.map?.setView('global');
+        this.map?.enableLayer('startupEcosystems');
+        this.mapLayers.startupEcosystems = true;
+        setTimeout(() => {
+          this.map?.triggerStartupEcosystemClick(ecosystem.id);
         }, 300);
         break;
       }
@@ -400,24 +391,6 @@ export class App {
       }
       case 'prediction': {
         this.scrollToPanel('polymarket');
-        break;
-      }
-      case 'base': {
-        const base = result.data as typeof MILITARY_BASES[0];
-        this.map?.setView('global');
-        setTimeout(() => {
-          this.map?.triggerBaseClick(base.id);
-        }, 300);
-        break;
-      }
-      case 'pipeline': {
-        const pipeline = result.data as typeof PIPELINES[0];
-        this.map?.setView('global');
-        this.map?.enableLayer('pipelines');
-        this.mapLayers.pipelines = true;
-        setTimeout(() => {
-          this.map?.triggerPipelineClick(pipeline.id);
-        }, 300);
         break;
       }
       case 'cable': {
@@ -437,26 +410,6 @@ export class App {
         this.mapLayers.datacenters = true;
         setTimeout(() => {
           this.map?.triggerDatacenterClick(dc.id);
-        }, 300);
-        break;
-      }
-      case 'nuclear': {
-        const nuc = result.data as typeof NUCLEAR_FACILITIES[0];
-        this.map?.setView('global');
-        this.map?.enableLayer('nuclear');
-        this.mapLayers.nuclear = true;
-        setTimeout(() => {
-          this.map?.triggerNuclearClick(nuc.id);
-        }, 300);
-        break;
-      }
-      case 'irradiator': {
-        const irr = result.data as typeof GAMMA_IRRADIATORS[0];
-        this.map?.setView('global');
-        this.map?.enableLayer('irradiators');
-        this.mapLayers.irradiators = true;
-        setTimeout(() => {
-          this.map?.triggerIrradiatorClick(irr.id);
         }, 300);
         break;
       }
@@ -938,12 +891,6 @@ export class App {
     if (!this.map) return;
 
     switch (asset.type) {
-      case 'pipeline':
-        this.map.enableLayer('pipelines');
-        this.mapLayers.pipelines = true;
-        saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
-        this.map.triggerPipelineClick(asset.id);
-        break;
       case 'cable':
         this.map.enableLayer('cables');
         this.mapLayers.cables = true;
@@ -956,17 +903,23 @@ export class App {
         saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
         this.map.triggerDatacenterClick(asset.id);
         break;
-      case 'base':
-        this.map.enableLayer('bases');
-        this.mapLayers.bases = true;
+      case 'tech-company':
+        this.map.enableLayer('techCompanies');
+        this.mapLayers.techCompanies = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
-        this.map.triggerBaseClick(asset.id);
+        this.map.triggerTechCompanyClick(asset.id);
         break;
-      case 'nuclear':
-        this.map.enableLayer('nuclear');
-        this.mapLayers.nuclear = true;
+      case 'ai-lab':
+        this.map.enableLayer('aiLabs');
+        this.mapLayers.aiLabs = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
-        this.map.triggerNuclearClick(asset.id);
+        this.map.triggerAILabClick(asset.id);
+        break;
+      case 'startup-ecosystem':
+        this.map.enableLayer('startupEcosystems');
+        this.mapLayers.startupEcosystems = true;
+        saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
+        this.map.triggerStartupEcosystemClick(asset.id);
         break;
     }
   }
