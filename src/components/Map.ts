@@ -26,6 +26,9 @@ import {
   PORTS,
   SPACEPORTS,
   CRITICAL_MINERALS,
+  TECH_COMPANIES,
+  AI_RESEARCH_LABS,
+  STARTUP_ECOSYSTEMS,
 } from '@/config';
 import { MapPopup } from './MapPopup';
 import {
@@ -739,6 +742,19 @@ export class MapComponent {
 
     if (this.state.layers.ais) {
       this.renderAisDensity(projection);
+    }
+
+    // Tech/AI layers
+    if (this.state.layers.techCompanies) {
+      this.renderTechCompanies(projection);
+    }
+
+    if (this.state.layers.aiLabs) {
+      this.renderAILabs(projection);
+    }
+
+    if (this.state.layers.startupEcosystems) {
+      this.renderStartupEcosystems(projection);
     }
 
     // GPU-accelerated cluster markers (LOD)
@@ -2649,6 +2665,106 @@ export class MapComponent {
 
   private getCableName(cableId: string): string {
     return UNDERSEA_CABLES.find((cable) => cable.id === cableId)?.name || cableId;
+  }
+
+  // Tech/AI marker rendering methods
+  private renderTechCompanies(projection: d3.GeoProjection): void {
+    if (!this.overlays) return;
+
+    TECH_COMPANIES.forEach((company) => {
+      const pos = projection([company.lon, company.lat]);
+      if (!pos) return;
+
+      const div = document.createElement('div');
+      div.className = `tech-company-marker ${company.sector.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-')}`;
+      div.style.left = `${pos[0]}px`;
+      div.style.top = `${pos[1]}px`;
+      div.title = `${company.name} - ${company.city}, ${company.country}`;
+
+      const label = document.createElement('div');
+      label.className = 'tech-company-label';
+      label.textContent = company.name;
+      div.appendChild(label);
+
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = this.container.getBoundingClientRect();
+        this.popup.show({
+          type: 'tech-company',
+          data: company,
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      });
+
+      this.overlays.appendChild(div);
+    });
+  }
+
+  private renderAILabs(projection: d3.GeoProjection): void {
+    if (!this.overlays) return;
+
+    AI_RESEARCH_LABS.forEach((lab) => {
+      const pos = projection([lab.lon, lab.lat]);
+      if (!pos) return;
+
+      const div = document.createElement('div');
+      div.className = `ai-lab-marker ${lab.type}`;
+      div.style.left = `${pos[0]}px`;
+      div.style.top = `${pos[1]}px`;
+      div.title = `${lab.name} - ${lab.city}, ${lab.country}`;
+
+      const label = document.createElement('div');
+      label.className = 'ai-lab-label';
+      label.textContent = lab.name;
+      div.appendChild(label);
+
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = this.container.getBoundingClientRect();
+        this.popup.show({
+          type: 'ai-lab',
+          data: lab,
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      });
+
+      this.overlays.appendChild(div);
+    });
+  }
+
+  private renderStartupEcosystems(projection: d3.GeoProjection): void {
+    if (!this.overlays) return;
+
+    STARTUP_ECOSYSTEMS.forEach((ecosystem) => {
+      const pos = projection([ecosystem.lon, ecosystem.lat]);
+      if (!pos) return;
+
+      const div = document.createElement('div');
+      div.className = `startup-ecosystem-marker ${ecosystem.ecosystemTier}`;
+      div.style.left = `${pos[0]}px`;
+      div.style.top = `${pos[1]}px`;
+      div.title = `${ecosystem.name} - ${ecosystem.unicorns} unicorns, $${(ecosystem.totalFunding2024 / 1e9).toFixed(1)}B funding`;
+
+      const label = document.createElement('div');
+      label.className = 'startup-ecosystem-label';
+      label.textContent = ecosystem.name;
+      div.appendChild(label);
+
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = this.container.getBoundingClientRect();
+        this.popup.show({
+          type: 'startup-ecosystem',
+          data: ecosystem,
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      });
+
+      this.overlays.appendChild(div);
+    });
   }
 
   public getHotspotLevels(): Record<string, string> {
