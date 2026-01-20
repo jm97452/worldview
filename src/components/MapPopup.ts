@@ -1,4 +1,4 @@
-import type { ConflictZone, Hotspot, Earthquake, NewsItem, MilitaryBase, StrategicWaterway, APTGroup, NuclearFacility, EconomicCenter, GammaIrradiator, Pipeline, UnderseaCable, CableAdvisory, RepairShip, InternetOutage, AIDataCenter, AisDisruptionEvent, SocialUnrestEvent, AirportDelayAlert, MilitaryFlight, MilitaryVessel, MilitaryFlightCluster, MilitaryVesselCluster, NaturalEvent, Port, Spaceport, CriticalMineralProject } from '@/types';
+import type { ConflictZone, Hotspot, Earthquake, NewsItem, MilitaryBase, StrategicWaterway, APTGroup, NuclearFacility, EconomicCenter, GammaIrradiator, Pipeline, UnderseaCable, CableAdvisory, RepairShip, InternetOutage, AIDataCenter, AisDisruptionEvent, SocialUnrestEvent, AirportDelayAlert, MilitaryFlight, MilitaryVessel, MilitaryFlightCluster, MilitaryVesselCluster, NaturalEvent, Port, Spaceport, CriticalMineralProject, TechCompany, AIResearchLab, StartupEcosystem } from '@/types';
 import type { WeatherAlert } from '@/services/weather';
 import { UNDERSEA_CABLES } from '@/config';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
@@ -7,11 +7,11 @@ import { fetchHotspotContext, formatArticleDate, extractDomain, type GdeltArticl
 import { getNaturalEventIcon } from '@/services/eonet';
 import { getHotspotEscalation, getEscalationChange24h } from '@/services/hotspot-escalation';
 
-export type PopupType = 'conflict' | 'hotspot' | 'earthquake' | 'weather' | 'base' | 'waterway' | 'apt' | 'nuclear' | 'economic' | 'irradiator' | 'pipeline' | 'cable' | 'cable-advisory' | 'repair-ship' | 'outage' | 'datacenter' | 'ais' | 'protest' | 'flight' | 'militaryFlight' | 'militaryVessel' | 'militaryFlightCluster' | 'militaryVesselCluster' | 'natEvent' | 'port' | 'spaceport' | 'mineral';
+export type PopupType = 'conflict' | 'hotspot' | 'earthquake' | 'weather' | 'base' | 'waterway' | 'apt' | 'nuclear' | 'economic' | 'irradiator' | 'pipeline' | 'cable' | 'cable-advisory' | 'repair-ship' | 'outage' | 'datacenter' | 'ais' | 'protest' | 'flight' | 'militaryFlight' | 'militaryVessel' | 'militaryFlightCluster' | 'militaryVesselCluster' | 'natEvent' | 'port' | 'spaceport' | 'mineral' | 'tech-company' | 'ai-lab' | 'startup-ecosystem';
 
 interface PopupData {
   type: PopupType;
-  data: ConflictZone | Hotspot | Earthquake | WeatherAlert | MilitaryBase | StrategicWaterway | APTGroup | NuclearFacility | EconomicCenter | GammaIrradiator | Pipeline | UnderseaCable | CableAdvisory | RepairShip | InternetOutage | AIDataCenter | AisDisruptionEvent | SocialUnrestEvent | AirportDelayAlert | MilitaryFlight | MilitaryVessel | MilitaryFlightCluster | MilitaryVesselCluster | NaturalEvent | Port | Spaceport | CriticalMineralProject;
+  data: ConflictZone | Hotspot | Earthquake | WeatherAlert | MilitaryBase | StrategicWaterway | APTGroup | NuclearFacility | EconomicCenter | GammaIrradiator | Pipeline | UnderseaCable | CableAdvisory | RepairShip | InternetOutage | AIDataCenter | AisDisruptionEvent | SocialUnrestEvent | AirportDelayAlert | MilitaryFlight | MilitaryVessel | MilitaryFlightCluster | MilitaryVesselCluster | NaturalEvent | Port | Spaceport | CriticalMineralProject | TechCompany | AIResearchLab | StartupEcosystem;
   relatedNews?: NewsItem[];
   x: number;
   y: number;
@@ -142,6 +142,12 @@ export class MapPopup {
         return this.renderSpaceportPopup(data.data as Spaceport);
       case 'mineral':
         return this.renderMineralPopup(data.data as CriticalMineralProject);
+      case 'tech-company':
+        return this.renderTechCompanyPopup(data.data as TechCompany);
+      case 'ai-lab':
+        return this.renderAILabPopup(data.data as AIResearchLab);
+      case 'startup-ecosystem':
+        return this.renderStartupEcosystemPopup(data.data as StartupEcosystem);
       default:
         return '';
     }
@@ -1638,6 +1644,192 @@ export class MapPopup {
           </div>
         </div>
         <p class="popup-description">${escapeHtml(mine.significance)}</p>
+      </div>
+    `;
+  }
+
+  private renderTechCompanyPopup(company: TechCompany): string {
+    const sectorIcons: Record<string, string> = {
+      'AI Research': '🧠',
+      'Cloud/AI': '☁️',
+      'Social/AI': '📱',
+      'AI Chips': '💾',
+      'AI Platform': '🔧',
+      'AI Data': '📊',
+      'Enterprise/AI': '🏢',
+      'Media/AI': '🎬',
+      'Consumer/AI': '🛍️',
+    };
+    const icon = sectorIcons[company.sector] || '🏭';
+
+    const valuation = company.valuation
+      ? `$${(company.valuation / 1e9).toFixed(1)}B`
+      : company.stockSymbol || 'Private';
+
+    return `
+      <div class="popup-header tech-company">
+        <span class="popup-icon">${icon}</span>
+        <span class="popup-title">${escapeHtml(company.name.toUpperCase())}</span>
+        <span class="popup-badge high">${company.officeType.toUpperCase()}</span>
+        <button class="popup-close">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="popup-subtitle">${escapeHtml(company.sector.toUpperCase())}</div>
+        <div class="popup-stats">
+          <div class="popup-stat">
+            <span class="stat-label">LOCATION</span>
+            <span class="stat-value">${escapeHtml(company.city)}, ${escapeHtml(company.country)}</span>
+          </div>
+          ${company.employees ? `
+          <div class="popup-stat">
+            <span class="stat-label">EMPLOYEES</span>
+            <span class="stat-value">${company.employees.toLocaleString()}</span>
+          </div>` : ''}
+          <div class="popup-stat">
+            <span class="stat-label">VALUATION/TICKER</span>
+            <span class="stat-value">${valuation}</span>
+          </div>
+          ${company.foundedYear ? `
+          <div class="popup-stat">
+            <span class="stat-label">FOUNDED</span>
+            <span class="stat-value">${company.foundedYear}</span>
+          </div>` : ''}
+        </div>
+        ${company.keyProducts && company.keyProducts.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">KEY PRODUCTS</div>
+          <div class="tech-products">
+            ${company.keyProducts.map(product => `<span class="tech-product-tag">${escapeHtml(product)}</span>`).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+    `;
+  }
+
+  private renderAILabPopup(lab: AIResearchLab): string {
+    const typeIcons: Record<string, string> = {
+      'academic': '🎓',
+      'industry': '🏢',
+      'research institute': '🔬',
+    };
+    const icon = typeIcons[lab.type] || '🔬';
+
+    return `
+      <div class="popup-header ai-lab">
+        <span class="popup-icon">${icon}</span>
+        <span class="popup-title">${escapeHtml(lab.name.toUpperCase())}</span>
+        <span class="popup-badge elevated">${lab.type.toUpperCase()}</span>
+        <button class="popup-close">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="popup-subtitle">AI RESEARCH LAB</div>
+        <div class="popup-stats">
+          <div class="popup-stat">
+            <span class="stat-label">LOCATION</span>
+            <span class="stat-value">${escapeHtml(lab.city)}, ${escapeHtml(lab.country)}</span>
+          </div>
+          ${lab.foundedYear ? `
+          <div class="popup-stat">
+            <span class="stat-label">FOUNDED</span>
+            <span class="stat-value">${lab.foundedYear}</span>
+          </div>` : ''}
+          ${lab.publications ? `
+          <div class="popup-stat">
+            <span class="stat-label">PUBLICATIONS</span>
+            <span class="stat-value">${lab.publications.toLocaleString()}</span>
+          </div>` : ''}
+          ${lab.faculty ? `
+          <div class="popup-stat">
+            <span class="stat-label">FACULTY</span>
+            <span class="stat-value">${lab.faculty}</span>
+          </div>` : ''}
+        </div>
+        ${lab.focusAreas && lab.focusAreas.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">RESEARCH AREAS</div>
+          <div class="tech-products">
+            ${lab.focusAreas.map(area => `<span class="tech-product-tag">${escapeHtml(area)}</span>`).join('')}
+          </div>
+        </div>` : ''}
+        ${lab.notableWork && lab.notableWork.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">NOTABLE WORK</div>
+          <ul class="popup-list">
+            ${lab.notableWork.map(work => `<li>${escapeHtml(work)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+      </div>
+    `;
+  }
+
+  private renderStartupEcosystemPopup(ecosystem: StartupEcosystem): string {
+    const tierIcons: Record<string, string> = {
+      'tier1': '⭐⭐⭐',
+      'tier2': '⭐⭐',
+      'tier3': '⭐',
+    };
+    const icon = tierIcons[ecosystem.ecosystemTier] || '🚀';
+
+    const fundingB = (ecosystem.totalFunding2024 / 1e9).toFixed(1);
+
+    return `
+      <div class="popup-header startup-ecosystem">
+        <span class="popup-icon">${icon}</span>
+        <span class="popup-title">${escapeHtml(ecosystem.name.toUpperCase())}</span>
+        <span class="popup-badge high">${ecosystem.ecosystemTier.toUpperCase()}</span>
+        <button class="popup-close">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="popup-subtitle">STARTUP ECOSYSTEM</div>
+        <div class="popup-stats">
+          <div class="popup-stat">
+            <span class="stat-label">LOCATION</span>
+            <span class="stat-value">${escapeHtml(ecosystem.city)}, ${escapeHtml(ecosystem.country)}</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">2024 FUNDING</span>
+            <span class="stat-value">$${fundingB}B</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">UNICORNS</span>
+            <span class="stat-value">${ecosystem.unicorns}</span>
+          </div>
+          <div class="popup-stat">
+            <span class="stat-label">ACTIVE STARTUPS</span>
+            <span class="stat-value">${ecosystem.activeStartups.toLocaleString()}</span>
+          </div>
+          ${ecosystem.avgSeedRound ? `
+          <div class="popup-stat">
+            <span class="stat-label">AVG SEED ROUND</span>
+            <span class="stat-value">$${(ecosystem.avgSeedRound / 1e6).toFixed(1)}M</span>
+          </div>` : ''}
+          ${ecosystem.avgSeriesA ? `
+          <div class="popup-stat">
+            <span class="stat-label">AVG SERIES A</span>
+            <span class="stat-value">$${(ecosystem.avgSeriesA / 1e6).toFixed(1)}M</span>
+          </div>` : ''}
+        </div>
+        ${ecosystem.topSectors && ecosystem.topSectors.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">TOP SECTORS</div>
+          <div class="tech-products">
+            ${ecosystem.topSectors.map(sector => `<span class="tech-product-tag">${escapeHtml(sector)}</span>`).join('')}
+          </div>
+        </div>` : ''}
+        ${ecosystem.majorVCs && ecosystem.majorVCs.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">MAJOR VCs</div>
+          <div class="vc-list">
+            ${ecosystem.majorVCs.slice(0, 5).map(vc => `<span class="vc-tag">${escapeHtml(vc)}</span>`).join('')}
+          </div>
+        </div>` : ''}
+        ${ecosystem.notableStartups && ecosystem.notableStartups.length > 0 ? `
+        <div class="popup-section">
+          <div class="section-title">NOTABLE STARTUPS</div>
+          <div class="tech-products">
+            ${ecosystem.notableStartups.slice(0, 6).map(startup => `<span class="tech-product-tag">${escapeHtml(startup)}</span>`).join('')}
+          </div>
+        </div>` : ''}
       </div>
     `;
   }
