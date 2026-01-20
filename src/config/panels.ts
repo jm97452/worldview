@@ -1,86 +1,73 @@
 import type { PanelConfig, MapLayers } from '@/types';
 
-// Panel order optimized for geopolitical analysis workflow:
-// Row 1: Intel sources and breaking events
-// Row 2: Market signals and leading indicators
-// Row 3: Supporting context and tracking
+// Panel order optimized for tech/AI analysis workflow:
+// Row 1: AI/Tech news and trends
+// Row 2: Market signals and funding activity
+// Row 3: Community feeds and developer news
 export const DEFAULT_PANELS: Record<string, PanelConfig> = {
-  map: { name: 'Global Map', enabled: true, priority: 1 },
-  'live-news': { name: 'Live News', enabled: true, priority: 1 },
-  intel: { name: 'Intel Feed', enabled: true, priority: 1 },
-  'gdelt-intel': { name: 'Live Intelligence', enabled: true, priority: 1 },
-  cii: { name: 'Country Instability', enabled: true, priority: 1 },
-  cascade: { name: 'Infrastructure Cascade', enabled: true, priority: 1 },
-  'strategic-risk': { name: 'Strategic Risk Overview', enabled: true, priority: 1 },
-  politics: { name: 'World News', enabled: true, priority: 1 },
-  middleeast: { name: 'Middle East', enabled: true, priority: 1 },
-  africa: { name: 'Africa', enabled: true, priority: 1 },
-  latam: { name: 'Latin America', enabled: true, priority: 1 },
-  asia: { name: 'Asia-Pacific', enabled: true, priority: 1 },
-  energy: { name: 'Energy & Resources', enabled: true, priority: 1 },
-  gov: { name: 'Government', enabled: true, priority: 1 },
-  thinktanks: { name: 'Think Tanks', enabled: true, priority: 1 },
-  polymarket: { name: 'Predictions', enabled: true, priority: 1 },
-  commodities: { name: 'Commodities', enabled: true, priority: 1 },
-  markets: { name: 'Markets', enabled: true, priority: 1 },
-  economic: { name: 'Economic Indicators', enabled: true, priority: 1 },
-  finance: { name: 'Financial', enabled: true, priority: 1 },
-  tech: { name: 'Technology', enabled: true, priority: 2 },
+  map: { name: 'Global Tech Map', enabled: true, priority: 1 },
+  ai: { name: 'AI/ML News', enabled: true, priority: 1 },
+  tech: { name: 'Technology', enabled: true, priority: 1 },
+  startups: { name: 'Startups & VC', enabled: true, priority: 1 },
+  'live-news': { name: 'Tech Headlines', enabled: true, priority: 1 },
+  security: { name: 'Cybersecurity', enabled: true, priority: 1 },
+  policy: { name: 'AI Policy & Regulation', enabled: true, priority: 1 },
+  layoffs: { name: 'Layoffs Tracker', enabled: true, priority: 1 },
+  markets: { name: 'Tech Stocks', enabled: true, priority: 2 },
+  finance: { name: 'Financial News', enabled: true, priority: 2 },
   crypto: { name: 'Crypto', enabled: true, priority: 2 },
-  heatmap: { name: 'Sector Heatmap', enabled: true, priority: 2 },
-  ai: { name: 'AI/ML', enabled: true, priority: 2 },
-  layoffs: { name: 'Layoffs Tracker', enabled: false, priority: 2 },
+  hardware: { name: 'Semiconductors & Hardware', enabled: true, priority: 2 },
+  cloud: { name: 'Cloud & Infrastructure', enabled: true, priority: 2 },
+  dev: { name: 'Developer Community', enabled: true, priority: 2 },
   monitors: { name: 'My Monitors', enabled: true, priority: 2 },
 };
 
 export const DEFAULT_MAP_LAYERS: MapLayers = {
-  conflicts: true,
-  bases: true,
-  cables: false,
-  pipelines: false,
-  hotspots: true,
-  ais: false,
-  nuclear: true,
-  irradiators: false,
-  sanctions: true,
-  weather: true,
-  economic: true,
-  countries: false,
-  waterways: true,
+  // Infrastructure
+  cables: true,
   outages: true,
-  datacenters: false,
-  protests: false,
-  flights: false,
-  military: false,
+
+  // Tech/AI layers
+  datacenters: true,
+  techCompanies: true,
+  aiLabs: true,
+  startupEcosystems: true,
+
+  // Market & research
+  techStocks: false,
+  arxivPapers: false,
+  hackernews: false,
+  githubTrending: false,
+
+  // Generic
+  weather: false,
   natural: true,
-  spaceports: false,
-  minerals: false,
+  countries: false,
 };
 
 // Mobile-specific defaults: minimal layers for better usability
-// Only essential layers: conflicts, hotspots, sanctions, outages, natural, weather
+// Only essential layers: tech companies, AI labs, datacenters, outages
 export const MOBILE_DEFAULT_MAP_LAYERS: MapLayers = {
-  conflicts: true,
-  bases: false,
+  // Infrastructure
   cables: false,
-  pipelines: false,
-  hotspots: true,
-  ais: false,
-  nuclear: false,
-  irradiators: false,
-  sanctions: true,
-  weather: true,
-  economic: false,
-  countries: false,
-  waterways: false,
   outages: true,
-  datacenters: false,
-  protests: false,
-  flights: false,
-  military: false,
+
+  // Tech/AI layers
+  datacenters: true,
+  techCompanies: true,
+  aiLabs: false,
+  startupEcosystems: false,
+
+  // Market & research
+  techStocks: false,
+  arxivPapers: false,
+  hackernews: false,
+  githubTrending: false,
+
+  // Generic
+  weather: false,
   natural: true,
-  spaceports: false,
-  minerals: false,
+  countries: false,
 };
 
 export const MONITOR_COLORS = [
