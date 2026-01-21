@@ -39,6 +39,7 @@ import {
   CascadePanel,
   StrategicRiskPanel,
   IntelligenceGapBadge,
+  RegulationPanel,
 } from '@/components';
 import type { MapView } from '@/components';
 import type { SearchResult } from '@/components/SearchModal';
@@ -754,9 +755,12 @@ export class App {
     const liveNewsPanel = new LiveNewsPanel();
     this.panels['live-news'] = liveNewsPanel;
 
-    // Add panels to grid in saved order (optimized for geopolitical analysis)
-    // Row 1: Intel + breaking events | Row 2: Market signals | Row 3: Supporting context
-    const defaultOrder = ['strategic-risk', 'live-news', 'intel', 'gdelt-intel', 'cii', 'cascade', 'politics', 'middleeast', 'asia', 'africa', 'latam', 'gov', 'thinktanks', 'polymarket', 'commodities', 'energy', 'markets', 'economic', 'finance', 'tech', 'crypto', 'heatmap', 'ai', 'layoffs', 'monitors'];
+    const regulationPanel = new RegulationPanel('regulation');
+    this.panels['regulation'] = regulationPanel;
+
+    // Add panels to grid in saved order (optimized for tech/AI analysis)
+    // Row 1: AI/Tech news + regulation | Row 2: Market signals | Row 3: Supporting context
+    const defaultOrder = ['live-news', 'ai', 'tech', 'regulation', 'security', 'startups', 'layoffs', 'policy', 'hardware', 'cloud', 'dev', 'markets', 'finance', 'crypto', 'polymarket', 'commodities', 'monitors'];
     const savedOrder = this.getSavedPanelOrder();
     // Merge saved order with default to include new panels
     let panelOrder = defaultOrder;

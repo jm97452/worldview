@@ -9,6 +9,7 @@ export * from './ports';
 export * from './tech-companies';
 export * from './ai-research-labs';
 export * from './startup-ecosystems';
+export * from './ai-regulations';
 
 export const API_URLS = {
   finnhub: (symbols: string[]) =>

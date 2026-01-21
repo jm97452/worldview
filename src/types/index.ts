@@ -494,6 +494,51 @@ export interface StartupEcosystem {
   avgSeriesA?: number; // in USD
 }
 
+// AI Regulation Types
+export type RegulationStance = 'strict' | 'moderate' | 'permissive' | 'undefined';
+export type RegulationType = 'comprehensive' | 'sectoral' | 'voluntary' | 'proposed';
+export type ComplianceStatus = 'active' | 'pending' | 'proposed' | 'expired';
+
+export interface AIRegulation {
+  id: string;
+  name: string;
+  shortName: string;
+  country: string;
+  region?: string; // e.g., 'EU', 'North America'
+  type: RegulationType;
+  status: ComplianceStatus;
+  announcedDate: string; // ISO date
+  effectiveDate?: string; // ISO date
+  complianceDeadline?: string; // ISO date
+  scope: string[]; // e.g., ['General AI', 'High-Risk AI', 'Foundation Models']
+  keyProvisions: string[];
+  penalties?: string; // e.g., '€35M or 7% of global revenue'
+  link?: string;
+  description?: string;
+}
+
+export interface RegulatoryAction {
+  id: string;
+  date: string; // ISO date
+  country: string;
+  title: string;
+  type: 'law-passed' | 'executive-order' | 'guideline' | 'enforcement' | 'consultation';
+  regulationId?: string; // Links to AIRegulation
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  source?: string;
+}
+
+export interface CountryRegulationProfile {
+  country: string;
+  countryCode: string; // ISO 3166-1 alpha-2
+  stance: RegulationStance;
+  activeRegulations: string[]; // AIRegulation IDs
+  proposedRegulations: string[]; // AIRegulation IDs
+  lastUpdated: string; // ISO date
+  summary: string;
+}
+
 export interface InternetOutage {
   id: string;
   title: string;
