@@ -1743,30 +1743,33 @@ export class App {
     const titleLower = title.toLowerCase();
     let bestMatch: { lat: number; lon: number; matches: number } | null = null;
 
-    const scoreKeywords = (keywords: string[] | undefined, lat: number, lon: number) => {
-      if (!keywords) return;
+    const countKeywordMatches = (keywords: string[] | undefined): number => {
+      if (!keywords) return 0;
       let matches = 0;
       for (const keyword of keywords) {
         const cleaned = keyword.trim().toLowerCase();
-        if (cleaned.length < 3) continue;
-        if (titleLower.includes(cleaned)) {
-          matches += 1;
+        if (cleaned.length >= 3 && titleLower.includes(cleaned)) {
+          matches++;
         }
       }
-      if (matches > 0 && (!bestMatch || matches > bestMatch.matches)) {
-        bestMatch = { lat, lon, matches };
-      }
+      return matches;
     };
 
     for (const hotspot of INTEL_HOTSPOTS) {
-      scoreKeywords(hotspot.keywords, hotspot.lat, hotspot.lon);
+      const matches = countKeywordMatches(hotspot.keywords);
+      if (matches > 0 && (!bestMatch || matches > bestMatch.matches)) {
+        bestMatch = { lat: hotspot.lat, lon: hotspot.lon, matches };
+      }
     }
 
     for (const conflict of CONFLICT_ZONES) {
-      scoreKeywords(conflict.keywords, conflict.center[1], conflict.center[0]);
+      const matches = countKeywordMatches(conflict.keywords);
+      if (matches > 0 && (!bestMatch || matches > bestMatch.matches)) {
+        bestMatch = { lat: conflict.center[1], lon: conflict.center[0], matches };
+      }
     }
 
-    return bestMatch ? { lat: bestMatch.lat, lon: bestMatch.lon } : null;
+    return bestMatch;
   }
 
   private flashMapForNews(items: NewsItem[]): void {
