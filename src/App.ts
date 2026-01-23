@@ -95,6 +95,8 @@ export class App {
   private isIdle = false;
   private readonly IDLE_PAUSE_MS = 2 * 60 * 1000; // 2 minutes - pause animations when idle
   private disabledSources: Set<string> = new Set();
+  private mapFlashCache: Map<string, number> = new Map();
+  private readonly MAP_FLASH_COOLDOWN_MS = 10 * 60 * 1000;
 
   constructor(containerId: string) {
     const el = document.getElementById(containerId);
@@ -1737,6 +1739,61 @@ export class App {
     }
   }
 
+  private findFlashLocation(title: string): { lat: number; lon: number } | null {
+    const titleLower = title.toLowerCase();
+    let bestMatch: { lat: number; lon: number; matches: number } | null = null;
+
+    const scoreKeywords = (keywords: string[] | undefined, lat: number, lon: number) => {
+      if (!keywords) return;
+      let matches = 0;
+      for (const keyword of keywords) {
+        const cleaned = keyword.trim().toLowerCase();
+        if (cleaned.length < 3) continue;
+        if (titleLower.includes(cleaned)) {
+          matches += 1;
+        }
+      }
+      if (matches > 0 && (!bestMatch || matches > bestMatch.matches)) {
+        bestMatch = { lat, lon, matches };
+      }
+    };
+
+    for (const hotspot of INTEL_HOTSPOTS) {
+      scoreKeywords(hotspot.keywords, hotspot.lat, hotspot.lon);
+    }
+
+    for (const conflict of CONFLICT_ZONES) {
+      scoreKeywords(conflict.keywords, conflict.center[1], conflict.center[0]);
+    }
+
+    return bestMatch ? { lat: bestMatch.lat, lon: bestMatch.lon } : null;
+  }
+
+  private flashMapForNews(items: NewsItem[]): void {
+    if (!this.map) return;
+    const now = Date.now();
+
+    for (const [key, timestamp] of this.mapFlashCache.entries()) {
+      if (now - timestamp > this.MAP_FLASH_COOLDOWN_MS) {
+        this.mapFlashCache.delete(key);
+      }
+    }
+
+    for (const item of items) {
+      const cacheKey = `${item.source}|${item.link || item.title}`;
+      const lastSeen = this.mapFlashCache.get(cacheKey);
+      if (lastSeen && now - lastSeen < this.MAP_FLASH_COOLDOWN_MS) {
+        continue;
+      }
+
+      const location = this.findFlashLocation(item.title);
+      if (!location) continue;
+
+      this.map.flashLocation(location.lat, location.lon);
+      this.mapFlashCache.set(cacheKey, now);
+    }
+  }
+
   private async loadNewsCategory(category: string, feeds: typeof FEEDS.politics): Promise<NewsItem[]> {
     try {
       const panel = this.newsPanels[category];
@@ -1785,7 +1842,10 @@ export class App {
       };
 
       const items = await fetchCategoryFeeds(enabledFeeds, {
-        onBatch: (partialItems) => scheduleRender(partialItems),
+        onBatch: (partialItems) => {
+          scheduleRender(partialItems);
+          this.flashMapForNews(partialItems);
+        },
       });
 
       if (panel) {
@@ -1879,6 +1939,7 @@ export class App {
         }
         this.statusPanel?.updateFeed('Intel', { status: 'ok', itemCount: intel.length });
         collectedNews.push(...intel);
+        this.flashMapForNews(intel);
       } else {
         console.error('[App] Intel feed failed:', intelResult[0]?.reason);
       }
