@@ -72,10 +72,11 @@ interface OpenSkyResponse {
 function determineAircraftInfo(
   callsign: string,
   icao24: string,
+  originCountry?: string,
   _typeCode?: string
 ): { type: MilitaryAircraftType; operator: MilitaryOperator; country: string; confidence: 'high' | 'medium' | 'low' } {
   // Check callsign first (highest confidence)
-  const callsignMatch = identifyByCallsign(callsign);
+  const callsignMatch = identifyByCallsign(callsign, originCountry);
   if (callsignMatch) {
     return {
       type: callsignMatch.aircraftType || 'unknown',
@@ -134,7 +135,7 @@ function isMilitaryFlight(state: OpenSkyStateArray): boolean {
   const originCountry = state[2];
 
   // Check for known military callsigns (covers all patterns from config)
-  if (callsign && identifyByCallsign(callsign)) {
+  if (callsign && identifyByCallsign(callsign, originCountry)) {
     return true;
   }
 
@@ -182,7 +183,7 @@ function parseOpenSkyResponse(data: OpenSkyResponse): MilitaryFlight[] {
 
     if (lat === null || lon === null) continue;
 
-    const info = determineAircraftInfo(callsign, icao24);
+    const info = determineAircraftInfo(callsign, icao24, state[2]);
 
     // Update flight history for trails
     const historyKey = icao24;
