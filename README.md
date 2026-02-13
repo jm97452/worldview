@@ -416,7 +416,7 @@ World Monitor runs on two platforms that work together:
 ```
 ┌─────────────────────────────────────┐
 │          Vercel (Edge)              │
-│  45+ edge functions · static SPA   │
+│  45+ edge functions · static SPA    │ 
 │  CORS allowlist · Redis cache       │
 │  AI pipeline · market analytics     │
 └──────────────┬──────────────────────┘
