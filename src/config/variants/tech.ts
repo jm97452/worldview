@@ -26,6 +26,8 @@ export {
 import type { Feed } from '@/types';
 
 const rss = (url: string) => `/api/rss-proxy?url=${encodeURIComponent(url)}`;
+const newsApi = (query: string, limit = 10) =>
+  `/api/news-api?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(String(limit))}`;
 
 export const FEEDS: Record<string, Feed[]> = {
   // Core Tech News
@@ -53,6 +55,7 @@ export const FEEDS: Record<string, Feed[]> = {
     { name: 'AI Weekly', url: rss('https://news.google.com/rss/search?q="artificial+intelligence"+OR+"machine+learning"+when:3d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'Anthropic News', url: rss('https://news.google.com/rss/search?q=Anthropic+Claude+AI+when:7d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'OpenAI News', url: rss('https://news.google.com/rss/search?q=OpenAI+ChatGPT+GPT-4+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'NewsAPI World', url: newsApi('artificial intelligence OR machine learning OR AI regulation', 10) },
   ],
 
   // Startups & VC - Comprehensive coverage

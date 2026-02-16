@@ -13,6 +13,9 @@ const railwayBaseUrl = wsRelayUrl
 const railwayRss = (url: string) =>
   railwayBaseUrl ? `${railwayBaseUrl}/rss?url=${encodeURIComponent(url)}` : rss(url);
 
+const newsApi = (query: string, limit = 10) =>
+  `/api/news-api?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(String(limit))}`;
+
 // Source tier system for prioritization (lower = more authoritative)
 // Tier 1: Wire services - fastest, most reliable breaking news
 // Tier 2: Major outlets - high-quality journalism
@@ -40,6 +43,8 @@ export const SOURCE_TIERS: Record<string, number> = {
   'Reuters World': 1,
   'Reuters Business': 1,
   'OpenAI News': 3,
+  'NewsAPI World': 2,
+  'GNews World': 2,
 
   // Tier 1 - Official Government & International Orgs
   'White House': 1,
@@ -348,6 +353,8 @@ const FULL_FEEDS: Record<string, Feed[]> = {
     { name: 'Reuters World', url: rss('https://news.google.com/rss/search?q=site:reuters.com+world&hl=en-US&gl=US&ceid=US:en') },
     { name: 'Politico', url: rss('https://www.politico.com/rss/politicopicks.xml') },
     { name: 'The Diplomat', url: rss('https://thediplomat.com/feed/') },
+    { name: 'NewsAPI World', url: newsApi('geopolitics OR conflict OR diplomacy', 10) },
+    { name: 'GNews World', url: newsApi('global affairs OR international relations', 10) },
   ],
   middleeast: [
     { name: 'BBC Middle East', url: rss('https://feeds.bbci.co.uk/news/world/middle_east/rss.xml') },
@@ -377,6 +384,7 @@ const FULL_FEEDS: Record<string, Feed[]> = {
     { name: 'Yahoo Finance', url: rss('https://finance.yahoo.com/news/rssindex') },
     { name: 'Financial Times', url: rss('https://www.ft.com/rss/home') },
     { name: 'Reuters Business', url: rss('https://news.google.com/rss/search?q=site:reuters.com+business+markets&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'NewsAPI World', url: newsApi('markets OR inflation OR central bank OR oil', 8) },
   ],
   gov: [
     { name: 'White House', url: rss('https://news.google.com/rss/search?q=site:whitehouse.gov&hl=en-US&gl=US&ceid=US:en') },

@@ -34,6 +34,8 @@ const SIGNUP_URLS: Partial<Record<RuntimeSecretKey, string>> = {
   OPENSKY_CLIENT_SECRET: 'https://opensky-network.org/login?view=registration',
   FINNHUB_API_KEY: 'https://finnhub.io/register',
   NASA_FIRMS_API_KEY: 'https://firms.modaps.eosdis.nasa.gov/api/area/',
+  NEWSAPI_API_KEY: 'https://newsapi.org/register',
+  GNEWS_API_KEY: 'https://gnews.io/dashboard',
 };
 
 const MASKED_SENTINEL = '__WM_MASKED__';
@@ -44,6 +46,8 @@ const SECRET_HELP_TEXT: Partial<Record<RuntimeSecretKey, string>> = {
   ABUSEIPDB_API_KEY: 'Optional enrichment source for malicious IP reputation.',
   FINNHUB_API_KEY: 'Real-time stock quotes and market data.',
   NASA_FIRMS_API_KEY: 'Fire Information for Resource Management System.',
+  NEWSAPI_API_KEY: 'News API aggregation source (world and finance enrichment).',
+  GNEWS_API_KEY: 'Secondary global news API used for redundancy and deduping.',
 };
 
 interface RuntimeConfigPanelOptions {
