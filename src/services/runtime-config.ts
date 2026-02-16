@@ -18,7 +18,9 @@ export type RuntimeSecretKey =
   | 'OPENSKY_CLIENT_SECRET'
   | 'AISSTREAM_API_KEY'
   | 'FINNHUB_API_KEY'
-  | 'NASA_FIRMS_API_KEY';
+  | 'NASA_FIRMS_API_KEY'
+  | 'NEWSAPI_API_KEY'
+  | 'GNEWS_API_KEY';
 
 export type RuntimeFeatureId =
   | 'aiGroq'
@@ -34,7 +36,8 @@ export type RuntimeFeatureId =
   | 'aisRelay'
   | 'openskyRelay'
   | 'finnhubMarkets'
-  | 'nasaFirms';
+  | 'nasaFirms'
+  | 'newsApiAggregation';
 
 export interface RuntimeFeatureDefinition {
   id: RuntimeFeatureId;
@@ -74,6 +77,7 @@ const defaultToggles: Record<RuntimeFeatureId, boolean> = {
   openskyRelay: true,
   finnhubMarkets: true,
   nasaFirms: true,
+  newsApiAggregation: true,
 };
 
 export const RUNTIME_FEATURES: RuntimeFeatureDefinition[] = [
@@ -176,6 +180,13 @@ export const RUNTIME_FEATURES: RuntimeFeatureDefinition[] = [
     description: 'Fire Information for Resource Management System satellite data.',
     requiredSecrets: ['NASA_FIRMS_API_KEY'],
     fallback: 'FIRMS fire layer uses public VIIRS feed.',
+  },
+  {
+    id: 'newsApiAggregation',
+    name: 'Premium news API aggregation',
+    description: 'Optional NewsAPI + GNews enrichment for world/tech feed coverage.',
+    requiredSecrets: ['NEWSAPI_API_KEY', 'GNEWS_API_KEY'],
+    fallback: 'Dashboard continues using RSS and Google News feeds only.',
   },
 ];
 
